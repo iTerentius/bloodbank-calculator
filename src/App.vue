@@ -7,7 +7,7 @@
           <div class="col-md-12">
             <div class="form-group">
               <label for="callsPerHour" class="form-label"
-                >Call List Size</label
+                >Staff Calls per Hour</label
               >
               <input
                 class="form-control"
@@ -46,7 +46,7 @@
                 type="text"
                 id="avgCallerPayPerHour"
                 name="avgCallerPayPerHour"
-                v-bind:value="inputs.avgCallerPayPerHour"
+                v-bind:value="toCurrency(inputs.avgCallerPayPerHour)"
               />
             </div>
           </div>
@@ -55,14 +55,14 @@
           <div class="col-md-12">
             <div class="form-group">
               <label for="avgCallerPayPerHour" class="form-label"
-                >Avergage Caller Pay per Hour</label
+                >Call List Size</label
               >
               <input
                 class="form-control"
                 type="text"
                 id="avgCallerPayPerHour"
                 name="avgCallerPayPerHour"
-                v-bind:value="inputs.avgCallerPayPerHour"
+                v-bind:value="inputs.callListSize"
               />
             </div>
           </div>
@@ -75,14 +75,14 @@
           <div class="outputs">
             <div class="output">
               <div class="user">
-                <p>{{ aproxwbcolledted }}</p>
+                <p>{{ aproxWBColledted }}</p>
               </div>
               <label>Your Center</label>
             </div>
             <div class="vs"><p>vs.</p></div>
             <div class="output">
               <div class="hac">
-                <p>$2.59</p>
+                <p>{{ toCurrency(haCostPerDonation) }}</p>
               </div>
               <label>HealthAware Collect</label>
             </div>
@@ -111,6 +111,9 @@ export default {
       constants: {
         wbShowRate: 0.75,
         wbCollected: 0.85,
+        haMontlyMin: 1500,
+        haAvgCostPerDonation: 2.9,
+        haApptRate: 0.13,
       },
       ui: {
         approachOne: true,
@@ -118,35 +121,67 @@ export default {
     };
   },
   computed: {
+    // Client Calcs One
     // B45
-    callinghoursforlist() {
+    callingHoursForlist() {
       //B41/B43
       return this.inputs.callListSize / this.inputs.callsPerHour;
     },
     // D47
-    totalcallingcost() {
+    totalCallingCost() {
       //D45 * B45
-      return this.inputs.avgCallerPayPerHour * this.callinghoursforlist;
+      return this.inputs.avgCallerPayPerHour * this.callingHoursForlist;
     },
     //B49
-    approxnumappts() {
+    approxNumAppts() {
       //B47 * B45
-      return this.inputs.apptsPerHour * this.callinghoursforlist;
+      return this.inputs.apptsPerHour * this.callingHoursForlist;
     },
     // B57
-    aproxwbcolledted() {
+    aproxWBColledted() {
       // B49*B53*B55
       return Math.round(
-        this.approxnumappts *
+        this.approxNumAppts *
           this.constants.wbShowRate *
           this.constants.wbCollected
       );
     },
     // D57
-    callercostperdonation() {
+    callerCostPerDonation() {
       //D47/D57
-      return this.totalcallingcost / this.approxwbcollected;
+      return this.totalCallingCost / this.approxwbcollected;
     },
+    // HA Calcs One
+    // F48
+    haApproxAppts() {
+      // F51 * B41
+      return this.constants.haApptRate * this.inputs.callListSize;
+    },
+    // F55
+    haCollectionsFromAppts() {
+      // F48 * B53 * B55
+      return this.haApproxAppts * this.constants.wbShowRate;
+    },
+    // F46
+    haMonthlyCost() {
+      // if B41 < 7500, G42 else F55 * G43
+      var cost = 0;
+      if (this.inputs.callListSize < 7500) {
+        cost = this.constants.haMontlyMin;
+      } else {
+        cost =
+          this.haCollectionsFromAppts * this.constants.haAvgCostPerDonation;
+      }
+
+      return cost;
+    },
+    // D57
+    haCostPerDonation() {
+      // F46/F55
+      return this.haMonthlyCost / this.haCollectionsFromAppts;
+    },
+  },
+  methods: {
     toCurrency(value) {
       if (typeof value !== "number") {
         return value;
