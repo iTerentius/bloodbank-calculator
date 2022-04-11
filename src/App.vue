@@ -2,6 +2,7 @@
   <header><h4>Calling Cost Calculator</h4></header>
   <section class="container">
     <div v-if="ui.approachOne" id="call-costs">
+      <currency-input v-model="inputs.avgCallerPayPerHour" />
       <form>
         <div class="row">
           <div class="col-md-12">
@@ -14,7 +15,7 @@
                 type="text"
                 id="callsPerHour"
                 name="callsPerHour"
-                v-bind:value="inputs.callsPerHour"
+                v-model="inputs.callsPerHour"
               />
             </div>
           </div>
@@ -30,7 +31,7 @@
                 type="text"
                 id="apptsPerHour"
                 name="apptsPerHour"
-                v-bind:value="inputs.apptsPerHour"
+                v-model="inputs.apptsPerHour"
               />
             </div>
           </div>
@@ -39,30 +40,26 @@
           <div class="col-md-12">
             <div class="form-group">
               <label for="avgCallerPayPerHour" class="form-label"
-                >Avergage Caller Pay per Hour</label
+                >Average Caller Pay per Hour</label
               >
-              <input
-                class="form-control"
-                type="text"
-                id="avgCallerPayPerHour"
-                name="avgCallerPayPerHour"
-                v-bind:value="toCurrency(inputs.avgCallerPayPerHour)"
-              />
+              <currency-input
+                v-model="inputs.avgCallerPayPerHour"
+              ></currency-input>
             </div>
           </div>
         </div>
         <div class="row">
           <div class="col-md-12">
             <div class="form-group">
-              <label for="avgCallerPayPerHour" class="form-label"
+              <label for="callListSize" class="form-label"
                 >Call List Size</label
               >
               <input
                 class="form-control"
                 type="text"
-                id="avgCallerPayPerHour"
-                name="avgCallerPayPerHour"
-                v-bind:value="inputs.callListSize"
+                id="callListSize"
+                name="callListSize"
+                v-model="inputs.callListSize"
               />
             </div>
           </div>
@@ -82,7 +79,7 @@
             <div class="vs"><p>vs.</p></div>
             <div class="output">
               <div class="hac">
-                <p>{{ toCurrency(haCostPerDonation) }}</p>
+                <p>{{ haCostPerDonation }}</p>
               </div>
               <label>HealthAware Collect</label>
             </div>
@@ -94,6 +91,7 @@
 </template>
 
 <script>
+import CurrencyInput from "./components/CurrencyInput.vue";
 // import CallCosts from "./components/CallCosts.vue";
 
 export default {
@@ -181,19 +179,8 @@ export default {
       return this.haMonthlyCost / this.haCollectionsFromAppts;
     },
   },
-  methods: {
-    toCurrency(value) {
-      if (typeof value !== "number") {
-        return value;
-      }
-      var formatter = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      });
-      return formatter.format(value);
-    },
-  },
   components: {
+    CurrencyInput,
     // CallCosts,
   },
 };
