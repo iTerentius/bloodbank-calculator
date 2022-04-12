@@ -2,7 +2,6 @@
   <header><h4>Calling Cost Calculator</h4></header>
   <section class="container">
     <div v-if="ui.approachOne" id="call-costs">
-      <currency-input v-model="inputs.avgCallerPayPerHour" />
       <form>
         <div class="row">
           <div class="col-md-12">
@@ -10,7 +9,7 @@
               <label for="callsPerHour" class="form-label"
                 >Staff Calls per Hour</label
               >
-              <input
+              <number-input
                 class="form-control"
                 type="text"
                 id="callsPerHour"
@@ -26,7 +25,7 @@
               <label for="apptsPerHour" class="form-label"
                 >Approx. Appts per Hour</label
               >
-              <input
+              <float-input
                 class="form-control"
                 type="text"
                 id="apptsPerHour"
@@ -44,6 +43,7 @@
               >
               <currency-input
                 v-model="inputs.avgCallerPayPerHour"
+                ref="cInput"
               ></currency-input>
             </div>
           </div>
@@ -54,7 +54,7 @@
               <label for="callListSize" class="form-label"
                 >Call List Size</label
               >
-              <input
+              <number-input
                 class="form-control"
                 type="text"
                 id="callListSize"
@@ -72,16 +72,93 @@
           <div class="outputs">
             <div class="output">
               <div class="user">
-                <p>{{ aproxWBColledted }}</p>
+                <p>{{ this.displayUSD(Math.round(callerCostPerDonation)) }}</p>
               </div>
               <label>Your Center</label>
             </div>
             <div class="vs"><p>vs.</p></div>
             <div class="output">
               <div class="hac">
-                <p>{{ haCostPerDonation }}</p>
+                <p>{{ this.displayUSD(haCostPerDonation) }}</p>
               </div>
               <label>HealthAware Collect</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="output-compare">
+        <label>Est. WB collections</label>
+        <div class="outputs">
+          <div class="output">
+            <div class="user">
+              <p>{{ this.displayNumber(Math.round(aproxWBColledted)) }}</p>
+            </div>
+            <label>Your Center</label>
+          </div>
+          <div class="vs"><p>vs.</p></div>
+          <div class="output">
+            <div class="hac">
+              <p>
+                {{ this.displayNumber(Math.round(haCollectionsFromAppts)) }}
+              </p>
+            </div>
+            <label>HealthAware Collect</label>
+          </div>
+        </div>
+      </div>
+      <div class="output-compare">
+        <label
+          >Total monthly cost to achieve HealthAware ({{
+            Math.round(haCollectionsFromAppts)
+          }}) collections
+        </label>
+        <div class="outputs">
+          <div class="output">
+            <div class="user">
+              <p>{{ this.displayUSD(totMonthlyDiffInCost1, 0) }}</p>
+            </div>
+            <label>Your Center</label>
+          </div>
+          <div class="vs"><p>vs.</p></div>
+          <div class="output">
+            <div class="hac">
+              <p>{{ this.displayUSD(haMonthlyCost, 0) }}</p>
+            </div>
+            <label>HealthAware Collect</label>
+          </div>
+        </div>
+      </div>
+      <div class="output-compare">
+        <label
+          >Total monthly calling hrs. to achiev HealthAware ({{
+            Math.round(haCollectionsFromAppts)
+          }}) collections
+        </label>
+        <div class="outputs">
+          <div class="output">
+            <div class="user">
+              <p>
+                {{ this.displayNumber(Math.round(haCollectionsFromAppts)) }}
+              </p>
+            </div>
+            <label>Your Center</label>
+          </div>
+          <div class="vs"><p>vs.</p></div>
+          <div class="output">
+            <div class="hac">
+              <p>--</p>
+            </div>
+            <label>HealthAware Collect</label>
+          </div>
+        </div>
+      </div>
+      <hr />
+      <div class="output-compare sum">
+        <label>Annual Savings with HealthAware Collect </label>
+        <div class="outputs">
+          <div class="output">
+            <div class="hac">
+              <p>{{ this.displayUSD(haAnnualSavingsCosts) }}</p>
             </div>
           </div>
         </div>
@@ -92,7 +169,9 @@
 
 <script>
 import CurrencyInput from "./components/CurrencyInput.vue";
-// import CallCosts from "./components/CallCosts.vue";
+// import PercentInput from "./components/PercentInput.vue";
+import NumberInput from "./components/NumberInput.vue";
+import FloatInput from "./components/FloatInput.vue";
 
 export default {
   name: "App",
@@ -120,6 +199,22 @@ export default {
   },
   computed: {
     // Client Calcs One
+    // B14
+    totCallingHoursComp1() {
+      // C12/B12 * B45
+      return (
+        (this.haCollectionsFromAppts / this.aproxWBColledted) *
+        this.callingHoursForlist
+      );
+    },
+    // B13
+    totMonthlyDiffInCost1() {
+      // (C12/B12) * D47
+      return (
+        (this.haCollectionsFromAppts / this.aproxWBColledted) *
+        this.totalCallingCost
+      );
+    },
     // B45
     callingHoursForlist() {
       //B41/B43
@@ -138,6 +233,7 @@ export default {
     // B57
     aproxWBColledted() {
       // B49*B53*B55
+      console.log(this.approxNumAppts);
       return Math.round(
         this.approxNumAppts *
           this.constants.wbShowRate *
@@ -147,7 +243,7 @@ export default {
     // D57
     callerCostPerDonation() {
       //D47/D57
-      return this.totalCallingCost / this.approxwbcollected;
+      return this.totalCallingCost / this.aproxWBColledted;
     },
     // HA Calcs One
     // F48
@@ -158,7 +254,11 @@ export default {
     // F55
     haCollectionsFromAppts() {
       // F48 * B53 * B55
-      return this.haApproxAppts * this.constants.wbShowRate;
+      return (
+        this.haApproxAppts *
+        this.constants.wbShowRate *
+        this.constants.wbCollected
+      );
     },
     // F46
     haMonthlyCost() {
@@ -173,15 +273,38 @@ export default {
 
       return cost;
     },
-    // D57
+    // F57
     haCostPerDonation() {
       // F46/F55
       return this.haMonthlyCost / this.haCollectionsFromAppts;
     },
+    // C15
+    haAnnualSavingsCosts() {
+      // (B13 - C13) * 12
+      return (this.totMonthlyDiffInCost1 - this.haMonthlyCost) * 12;
+    },
+  },
+  methods: {
+    displayNumber(value) {
+      return value.toFixed(0).replace(/\d{1,3}(?=(\d{3})+(?!\d))/g, "$&,");
+    },
+    displayPerc(value) {
+      return value
+        .toFixed(2)
+        .replace(/^[%$][-+]?\d+([,.]\d{1,2})?|^[-+]?\d+([,.]\d{1,2})?[$%]/g);
+    },
+    displayUSD(value, precision = 2) {
+      return (
+        "$" +
+        value.toFixed(precision).replace(/(\d)(?=(\d{3})+(?:\.\d+)?$)/g, "$1,")
+      );
+    },
   },
   components: {
     CurrencyInput,
-    // CallCosts,
+    // PercentInput,
+    NumberInput,
+    FloatInput,
   },
 };
 </script>
@@ -226,6 +349,9 @@ header h4 {
   margin-bottom: 20px;
 }
 
+.output {
+  min-width: 150px;
+}
 .output-compare {
   text-align: center;
   margin: 30px 0;
@@ -258,6 +384,15 @@ header h4 {
 .outputs .hac {
   padding: 20px;
   border-radius: 5px;
+}
+
+.sum .output {
+  width: 100%;
+}
+
+.sum label,
+.sum .hac {
+  color: #006837;
 }
 
 .output label {

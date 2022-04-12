@@ -2,7 +2,7 @@
   <input
     class="form-control"
     type="text"
-    name="cInput"
+    name="fInput"
     v-model="displayValue"
     @blur="isInputActive = false"
     @focus="isInputActive = true"
@@ -11,7 +11,7 @@
 
 <script>
 export default {
-  name: "CurrencyInput",
+  name: "FloatInput",
   props: ["modelValue"],
   emits: ["update:modelValue"],
   data() {
@@ -29,20 +29,14 @@ export default {
           return this.modelValue.toString();
         } else {
           // User is not modifying now. Format display value for user interface
-          return (
-            "$" +
-            this.modelValue
-              .toFixed(2)
-              // .replace(/^\d+\.\d{0,2}$/g, "$1,")
-              .replace(/(\d)(?=(\d{3})+(?:\.\d+)?$)/g, "$1,")
-          );
+          return this.modelValue
+            .toFixed(2)
+            .replace(/(\d)(?=(\d{3})+(?:\.\d+)?$)/g, "$1,");
         }
       },
       set: function (modifiedValue) {
         // Recalculate value after ignoring "$" and "," in user input
-        let newValue = parseFloat(
-          modifiedValue.toFixed(2).replace(/[^\d{0,2}]/g, "")
-        );
+        let newValue = parseFloat(modifiedValue.replace(/[^\d]/g, ""));
         // Ensure that it is not NaN
         if (isNaN(newValue)) {
           newValue = 0;
