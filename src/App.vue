@@ -1,6 +1,14 @@
 <template>
   <header><h4>Calling Cost Calculator</h4></header>
   <section class="container">
+    <nav class="calc-options">
+      <ul>
+        <li>Cost Comparison</li>
+        <li><a href="#">Efficacy Comparison</a></li>
+      </ul>
+    </nav>
+    <h1>HealthAware Collect Costs vs. Caller Costs & Capacity</h1>
+    <p class="instruction">Enter your calling center data.</p>
     <div v-if="ui.approachOne" id="call-costs">
       <form>
         <div class="row">
@@ -72,7 +80,7 @@
           <div class="outputs">
             <div class="output">
               <div class="user">
-                <p>{{ this.displayUSD(Math.round(callerCostPerDonation)) }}</p>
+                <p>{{ this.displayUSD(callerCostPerDonation, 2) }}</p>
               </div>
               <label>Your Center</label>
             </div>
@@ -91,7 +99,7 @@
         <div class="outputs">
           <div class="output">
             <div class="user">
-              <p>{{ this.displayNumber(Math.round(aproxWBColledted)) }}</p>
+              <p>{{ this.displayNumber(aproxWBColledted) }}</p>
             </div>
             <label>Your Center</label>
           </div>
@@ -108,7 +116,7 @@
       </div>
       <div class="output-compare">
         <label
-          >Total monthly cost to achieve HealthAware ({{
+          >Total monthly cost to achieve<br />HealthAware ({{
             Math.round(haCollectionsFromAppts)
           }}) collections
         </label>
@@ -130,15 +138,14 @@
       </div>
       <div class="output-compare">
         <label
-          >Total monthly calling hrs. to achiev HealthAware ({{
-            Math.round(haCollectionsFromAppts)
-          }}) collections
+          >Total monthly calling hrs. to achieve<br />
+          HealthAware ({{ haCollectionsFromAppts }}) collections
         </label>
         <div class="outputs">
           <div class="output">
             <div class="user">
               <p>
-                {{ this.displayNumber(Math.round(haCollectionsFromAppts)) }}
+                {{ this.displayNumber(haCollectionsFromAppts) }}
               </p>
             </div>
             <label>Your Center</label>
@@ -158,12 +165,41 @@
         <div class="outputs">
           <div class="output">
             <div class="hac">
-              <p>{{ this.displayUSD(haAnnualSavingsCosts) }}</p>
+              <p>{{ this.displayUSD(haAnnualSavingsCosts, 0) }}</p>
             </div>
           </div>
         </div>
       </div>
     </div>
+    <p>
+      HealthAware Collect provides significant savings** by reducing
+      cost-to-collect vs calling and provides higher appointment efficiencies.
+    </p>
+    <p>
+      Enter your email adress and we’ll send you a fully detailed repost on all
+      the the behind the scenes numbers.
+    </p>
+    <form class="request">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="form-group">
+            <input
+              class="form-control"
+              type="text"
+              id="email"
+              name="email"
+              placeholder="Enter your business email"
+            />
+          </div>
+        </div>
+      </div>
+      <p class="text-center">
+        <button class="btn btn-primary btn-lg">Request More Information</button>
+      </p>
+      <p class="small">
+        ** These calculations are based on general assumptions.
+      </p>
+    </form>
   </section>
 </template>
 
@@ -233,31 +269,31 @@ export default {
     // B57
     aproxWBColledted() {
       // B49*B53*B55
-      console.log(this.approxNumAppts);
-      return Math.round(
+
+      return (
         this.approxNumAppts *
-          this.constants.wbShowRate *
-          this.constants.wbCollected
+        this.constants.wbShowRate *
+        this.constants.wbCollected
       );
     },
     // D57
     callerCostPerDonation() {
-      //D47/D57
+      //D47/B57
       return this.totalCallingCost / this.aproxWBColledted;
     },
     // HA Calcs One
     // F48
     haApproxAppts() {
       // F51 * B41
-      return this.constants.haApptRate * this.inputs.callListSize;
+      return Math.round(this.constants.haApptRate * this.inputs.callListSize);
     },
     // F55
     haCollectionsFromAppts() {
       // F48 * B53 * B55
-      return (
+      return Math.round(
         this.haApproxAppts *
-        this.constants.wbShowRate *
-        this.constants.wbCollected
+          this.constants.wbShowRate *
+          this.constants.wbCollected
       );
     },
     // F46
@@ -271,7 +307,7 @@ export default {
           this.haCollectionsFromAppts * this.constants.haAvgCostPerDonation;
       }
 
-      return cost;
+      return Math.round(cost);
     },
     // F57
     haCostPerDonation() {
@@ -285,19 +321,25 @@ export default {
     },
   },
   methods: {
-    displayNumber(value) {
-      return value.toFixed(0).replace(/\d{1,3}(?=(\d{3})+(?!\d))/g, "$&,");
-    },
-    displayPerc(value) {
+    displayNumber(value, precision = 0) {
       return value
-        .toFixed(2)
+        .toFixed(precision)
+        .replace(/\d{1,3}(?=(\d{3})+(?!\d))/g, "$&,");
+    },
+    displayPerc(value, precision = 0) {
+      return value
+        .toFixed(precision)
         .replace(/^[%$][-+]?\d+([,.]\d{1,2})?|^[-+]?\d+([,.]\d{1,2})?[$%]/g);
     },
     displayUSD(value, precision = 2) {
+      // value = Number.parseFloat(value).toFixed(4);
       return (
         "$" +
         value.toFixed(precision).replace(/(\d)(?=(\d{3})+(?:\.\d+)?$)/g, "$1,")
       );
+    },
+    roundDecimal(value, prec = 0) {
+      return Number.parseFloat(value).toFixed(prec);
     },
   },
   components: {
@@ -319,12 +361,43 @@ export default {
   /* margin-top: 60px; */
 }
 
+h1 {
+  margin-bottom: 30px;
+}
+
+.container {
+  max-width: 450px;
+  margin-bottom: 60px;
+}
+
 .container form {
   margin: 30px 0 60px;
 }
 
 .container form label {
   font-weight: bold;
+}
+
+nav.calc-options ul {
+  padding: 30px 0;
+  list-style: none;
+  display: flex;
+  justify-content: center;
+}
+
+nav.calc-options ul li {
+  margin: 0 30px;
+}
+
+.comparison h4 {
+  font-size: 22px;
+  font-weight: bold;
+  border-bottom: 1px solid black;
+}
+
+p.instruction {
+  font-style: italic;
+  font-weight: 300;
 }
 
 .form-control {

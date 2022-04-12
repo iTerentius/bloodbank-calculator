@@ -40,9 +40,7 @@ export default {
       },
       set: function (modifiedValue) {
         // Recalculate value after ignoring "$" and "," in user input
-        let newValue = parseFloat(
-          modifiedValue.toFixed(2).replace(/[^\d{0,2}]/g, "")
-        );
+        let newValue = parseFloat(modifiedValue);
         // Ensure that it is not NaN
         if (isNaN(newValue)) {
           newValue = 0;

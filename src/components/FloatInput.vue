@@ -30,13 +30,15 @@ export default {
         } else {
           // User is not modifying now. Format display value for user interface
           return this.modelValue
-            .toFixed(2)
+            .toString()
             .replace(/(\d)(?=(\d{3})+(?:\.\d+)?$)/g, "$1,");
+          // .toFixed(2)
         }
       },
       set: function (modifiedValue) {
         // Recalculate value after ignoring "$" and "," in user input
-        let newValue = parseFloat(modifiedValue.replace(/[^\d]/g, ""));
+        // let newValue = parseFloat(modifiedValue.replace(/[^\d]/g, ""));
+        let newValue = parseFloat(modifiedValue);
         // Ensure that it is not NaN
         if (isNaN(newValue)) {
           newValue = 0;
